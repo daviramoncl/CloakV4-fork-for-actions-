@@ -1,7 +1,7 @@
 name: Compilar CloakV4
 
 on:
-  workflow_dispatch: # Permite ativar a compilação manualmente por um botão
+  workflow_dispatch: # Ativa o botão manual
 
 jobs:
   build-windows:
@@ -10,14 +10,20 @@ jobs:
     steps:
     - name: Baixar o codigo fonte
       uses: actions/checkout@v4
+      with:
+        submodules: recursive # Garante que dependências internas do Git venham junto
 
-    - name: Configurar o vcpkg
+    - name: Configurar as ferramentas do Visual Studio (MSVC)
+      uses: ilammy/msvc-dev-cmd@v1 # Ativa o compilador oficial da Microsoft no terminal do GitHub
+
+    - name: Configurar o CMake e rodar o vcpkg
+      shell: pwsh
       run: |
-        $env:VCPKG_DEFAULT_TRIPLET = "x64-windows"
-        # O Windows Server do GitHub já vem com o vcpkg e Visual Studio instalados!
-
-    - name: Configurar o CMake (Gera o projeto e baixa dependencias)
-      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        # O repositório usa o vcpkg embutido do GitHub Actions através do arquivo de ferramentas do CMake
+        cmake -B build -S . `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+          -DVCPKG_TARGET_TRIPLET=x64-windows
 
     - name: Compilar o executavel
       run: cmake --build build --config Release
@@ -26,4 +32,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: CloakV4-Windows-x64
-        path: build/bin/Release/
+        path: |
+          build/bin/Release/
+          bin/Release/
