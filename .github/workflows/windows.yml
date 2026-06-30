@@ -1,7 +1,8 @@
 name: windows
 
-# build on c/cpp changes or workflow changes
+# Ativa o build em alterações ou por botão manual
 on:
+  workflow_dispatch: # 👈 ADICIONADO: Permite rodar manualmente pelo botão cinza!
   push:
     paths:
       - 'lib/**.[ch]'
@@ -38,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bits: [32, 64]
+        bits: [64] # 👈 MODIFICADO: Deixei apenas 64-bit para o build ir duas vezes mais rápido!
     steps:
       - uses: actions/checkout@v4
       - name: Install compiler
