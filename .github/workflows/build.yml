@@ -1,0 +1,29 @@
+name: Compilar CloakV4
+
+on:
+  workflow_dispatch: # Permite ativar a compilação manualmente por um botão
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    
+    steps:
+    - name: Baixar o codigo fonte
+      uses: actions/checkout@v4
+
+    - name: Configurar o vcpkg
+      run: |
+        $env:VCPKG_DEFAULT_TRIPLET = "x64-windows"
+        # O Windows Server do GitHub já vem com o vcpkg e Visual Studio instalados!
+
+    - name: Configurar o CMake (Gera o projeto e baixa dependencias)
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+    - name: Compilar o executavel
+      run: cmake --build build --config Release
+
+    - name: Guardar o resultado (.exe)
+      uses: actions/upload-artifact@v4
+      with:
+        name: CloakV4-Windows-x64
+        path: build/bin/Release/
