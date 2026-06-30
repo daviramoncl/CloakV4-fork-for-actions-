@@ -1,0 +1,37 @@
+name: Compilar apenas JsonCPP DLL
+
+on:
+  workflow_dispatch: # Permite ativar manualmente pelo botão
+
+jobs:
+  build-jsoncpp:
+    runs-on: windows-2022
+    
+    steps:
+    - name: Baixar o codigo fonte do JsonCPP oficial
+      uses: actions/checkout@v4
+      with:
+        repository: open-source-parsers/jsoncpp
+        ref: master # Pega a versão mais recente e estável
+
+    - name: Configurar ferramentas do Visual Studio (MSVC)
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Configurar o CMake para gerar DLL de 64-bits
+      run: |
+        cmake -B build -S . `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DBUILD_SHARED_LIBS=ON `
+          -DJSONCPP_WITH_TESTS=OFF `
+          -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF
+
+    - name: Compilar a DLL
+      run: cmake --build build --config Release
+
+    - name: Guardar a DLL resultante
+      uses: actions/upload-artifact@v4
+      with:
+        name: jsoncpp-dll-windows-x64
+        path: |
+          build/bin/Release/jsoncpp.dll
+          build/bin/jsoncpp.dll
