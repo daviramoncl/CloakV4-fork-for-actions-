@@ -1,0 +1,38 @@
+name: Compilar CloakV4 para Mac (Intel)
+
+on:
+  workflow_dispatch: # Ativa o botão manual
+
+jobs:
+  build-macos:
+    runs-on: macos-13 # Esta é a versão exata do GitHub com processador Intel x86_64 (compatível com o Ventura)
+    
+    steps:
+    - name: Baixar o codigo fonte
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Instalar dependencias pelo Homebrew
+      run: |
+        brew update
+        # Instala as ferramentas gráficas, de áudio e banco de dados que o motor do jogo exige
+        brew install cmake luajit irrlicht spatialindex freetype libvorbis libogg openal-soft gmp jsoncpp zstd sqlite3
+
+    - name: Configurar o CMake
+      run: |
+        # Desativamos o PostgreSQL e o vcpkg para usar as ferramentas nativas do Mac
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DENABLE_POSTGRESQL=0 \
+          -DENABLE_VCPKG=0 \
+          -DENABLE_GETTEXT=0
+
+    - name: Compilar o projeto
+      run: cmake --build build --config Release
+
+    - name: Guardar o resultado (App Mac)
+      uses: actions/upload-artifact@v4
+      with:
+        name: CloakV4-macOS-Intel
+        path: build/bin/
